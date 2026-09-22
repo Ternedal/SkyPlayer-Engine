@@ -1,0 +1,9 @@
+{
+  "name": "dk.ternedal.skyplayer.engine",
+  "version": "0.1.0",
+  "displayName": "SkyPlayer Engine",
+  "description": "Shared Unity/OpenXR VR playback engine for Skyplayer and Kaliv-VR. Includes VR180/360 projection, Android Media3/ExoPlayer GPU playback and Meta Quest passthrough.",
+  "unity": "6000.0",
+  "author": { "name": "Ternedal" },
+  "dependencies": { "com.unity.xr.openxr": "1.16.1" }
+}
