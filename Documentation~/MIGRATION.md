@@ -49,6 +49,10 @@ player.Open(new MediaSource(streamUrl, resumePosition), projection);
 
 ## Phase 3 — Skyplayer consumes the package
 
+Status: **integration branch created; Unity/Quest validation pending**
+
+The `engine-integration` branch in `Ternedal/Skyplayer` contains a thin compatibility adapter over `SkyPlayer.Engine.VrPlayer`.
+
 1. Add dk.ternedal.skyplayer.engine to Skyplayer.
 2. Adapt product code to the engine API.
 3. Remove duplicate native/plugin/shader files only after a Quest build passes.
