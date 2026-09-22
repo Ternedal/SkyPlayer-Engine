@@ -24,7 +24,7 @@ import androidx.media3.exoplayer.ExoPlayer;
  */
 public class ExoVideoPlugin {
 
-    static { System.loadLibrary("exovideo"); }   // triggers JNI_OnLoad → caches JavaVM
+    static { System.loadLibrary("skyplayerengine"); }   // triggers JNI_OnLoad → caches JavaVM
 
     private final Context context;
     private final Handler main;
