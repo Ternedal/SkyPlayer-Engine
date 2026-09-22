@@ -14,12 +14,12 @@ namespace SkyPlayer.Engine
         public bool Available { get; private set; }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-        [DllImport("exovideo")] private static extern int ExoNativePing();
-        [DllImport("exovideo")] private static extern IntPtr GetRenderEventFunc();
-        [DllImport("exovideo")] private static extern int ExoNativeSetPlugin(IntPtr plugin);
-        [DllImport("exovideo")] private static extern int ExoNativeGetOutTex();
-        [DllImport("exovideo")] private static extern int ExoNativeGetW();
-        [DllImport("exovideo")] private static extern int ExoNativeGetH();
+        [DllImport("skyplayerengine")] private static extern int ExoNativePing();
+        [DllImport("skyplayerengine")] private static extern IntPtr GetRenderEventFunc();
+        [DllImport("skyplayerengine")] private static extern int ExoNativeSetPlugin(IntPtr plugin);
+        [DllImport("skyplayerengine")] private static extern int ExoNativeGetOutTex();
+        [DllImport("skyplayerengine")] private static extern int ExoNativeGetW();
+        [DllImport("skyplayerengine")] private static extern int ExoNativeGetH();
 #endif
 
         /// <summary>GPU step A: confirm the native .so built, loaded and is callable.</summary>
