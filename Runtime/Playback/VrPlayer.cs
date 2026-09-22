@@ -18,6 +18,8 @@ namespace SkyPlayer.Engine
         private Material _material;
         private GameObject _display;
         private Texture2D _externalTexture;
+        private Transform _presentationRoot;
+        private int _presentationLayer = -1;
 
         private MediaSource _source;
         private Projection _projection;
@@ -50,8 +52,10 @@ namespace SkyPlayer.Engine
         public string FormatLabel => _projection.Label;
         public Projection Projection => _projection;
         public float Zoom01 => Mathf.InverseLerp(SpanMax, SpanMin, _span);
+        public GameObject Display => _display;
 
         public event Action<string> StateChanged;
+        public event Action<GameObject> DisplayChanged;
         public event Action Ended;
 
         public void Initialize(Camera camera, VrPlayerOptions? options = null)
@@ -77,6 +81,18 @@ namespace SkyPlayer.Engine
 
             if (!_exo.Available)
                 StateChanged?.Invoke("error:Media3/ExoPlayer bridge unavailable");
+        }
+
+        /// <summary>
+        /// Bind generated media geometry to a client-owned presentation root/layer.
+        /// Calling this before or after Initialize is supported. Existing clients
+        /// that never call it retain the historical world-root/default-layer behavior.
+        /// </summary>
+        public void SetPresentationRoot(Transform root, int layer = -1)
+        {
+            _presentationRoot = root;
+            _presentationLayer = layer;
+            AttachDisplayToPresentation();
         }
 
         public void Open(MediaSource source, Projection projection)
@@ -342,6 +358,7 @@ namespace SkyPlayer.Engine
             {
                 Destroy(_display);
                 _display = null;
+                DisplayChanged?.Invoke(null);
             }
 
             if (_externalTexture != null)
@@ -428,6 +445,7 @@ namespace SkyPlayer.Engine
                 _display.name = "SkyPlayerEngine.VideoSphere";
                 _display.transform.localScale = Vector3.one * 50f;
                 _display.GetComponent<Renderer>().sharedMaterial = _material;
+                AttachDisplayToPresentation();
                 RecenterSphere();
                 return;
             }
@@ -441,7 +459,28 @@ namespace SkyPlayer.Engine
             float aspect = height > 0 ? perEyeWidth / height : 1.777f;
             _display.transform.localScale = new Vector3(wide, wide / aspect, 1f);
             _display.GetComponent<Renderer>().sharedMaterial = _material;
+            AttachDisplayToPresentation();
             PlaceFlatInFront(_flatDistance);
+        }
+
+        private void AttachDisplayToPresentation()
+        {
+            if (_display == null) return;
+
+            if (_presentationRoot != null)
+                _display.transform.SetParent(_presentationRoot, true);
+
+            if (_presentationLayer >= 0 && _presentationLayer <= 31)
+                SetLayerRecursive(_display, _presentationLayer);
+
+            DisplayChanged?.Invoke(_display);
+        }
+
+        private static void SetLayerRecursive(GameObject root, int layer)
+        {
+            root.layer = layer;
+            foreach (Transform child in root.transform)
+                SetLayerRecursive(child.gameObject, layer);
         }
 
         private void PlaceFlatInFront(float distance)
