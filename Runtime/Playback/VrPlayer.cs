@@ -276,6 +276,12 @@ namespace SkyPlayer.Engine
             _exo.SeekTo((long)(target * 1000));
         }
 
+        /// <summary>Set the normalized zoom used when the next media item is opened.</summary>
+        public void SetDefaultZoom(float zoom01)
+        {
+            _options.DefaultZoom = Mathf.Clamp01(zoom01);
+        }
+
         /// <summary>
         /// Adjust zoom with a signed normalized delta. Positive moves closer/more immersive;
         /// negative moves out. Input-device mapping belongs to the client.
