@@ -133,6 +133,26 @@ namespace SkyPlayer.Engine
             _destroyLayer           = Resolve<Del_DestroyPassthroughLayer>("xrDestroyPassthroughLayerFB");
             _layerResume            = Resolve<Del_PassthroughLayerResume>("xrPassthroughLayerResumeFB");
             _layerPause             = Resolve<Del_PassthroughLayerPause>("xrPassthroughLayerPauseFB");
+
+            bool functionsReady =
+                _createPassthrough != null &&
+                _destroyPassthrough != null &&
+                _passthroughStart != null &&
+                _passthroughPause != null &&
+                _createLayer != null &&
+                _destroyLayer != null &&
+                _layerResume != null &&
+                _layerPause != null;
+
+            if (!functionsReady)
+            {
+                _extEnabled = false;
+                Debug.LogError(
+                    "[Passthrough] XR_FB_passthrough was advertised, but required functions " +
+                    "could not be resolved. Feature disabled for this session.");
+                return true;
+            }
+
             Debug.Log("[Passthrough] XR_FB_passthrough enabled; FB functions resolved.");
             return true;
         }
@@ -159,11 +179,17 @@ namespace SkyPlayer.Engine
 
         static void CreatePassthrough()
         {
-            if (!_extEnabled || _passthrough != 0 || _createPassthrough == null) return;
+            if (!_extEnabled || _passthrough != 0 ||
+                _createPassthrough == null || _createLayer == null) return;
 
             var pci = new XrPassthroughCreateInfoFB { type = XR_TYPE_PASSTHROUGH_CREATE_INFO_FB };
             int r = _createPassthrough(_session, ref pci, out _passthrough);
-            if (r != 0) { Debug.LogError("[Passthrough] xrCreatePassthroughFB failed: " + r); return; }
+            if (r != 0)
+            {
+                _passthrough = 0;
+                Debug.LogError("[Passthrough] xrCreatePassthroughFB failed: " + r);
+                return;
+            }
 
             var lci = new XrPassthroughLayerCreateInfoFB
             {
@@ -172,7 +198,17 @@ namespace SkyPlayer.Engine
                 purpose = XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB,
             };
             r = _createLayer(_session, ref lci, out _layer);
-            if (r != 0) { Debug.LogError("[Passthrough] xrCreatePassthroughLayerFB failed: " + r); return; }
+            if (r != 0)
+            {
+                _layer = 0;
+                if (_passthrough != 0 && _destroyPassthrough != null)
+                {
+                    _destroyPassthrough(_passthrough);
+                    _passthrough = 0;
+                }
+                Debug.LogError("[Passthrough] xrCreatePassthroughLayerFB failed: " + r);
+                return;
+            }
 
             // Pre-pin the composition layer we submit every frame (handle is stable).
             var comp = new XrCompositionLayerPassthroughFB
