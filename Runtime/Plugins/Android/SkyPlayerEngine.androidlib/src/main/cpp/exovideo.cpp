@@ -111,16 +111,24 @@ static void initGL() {
 
 static void ensureOutTex(int w, int h) {
     if (w > MAX_W) { h = (int)((long)h * MAX_W / w); w = MAX_W; }
-    glGenTextures(1, &g_outTex);
-    glBindTexture(GL_TEXTURE_2D, g_outTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Reuse the GL texture id when the source resolution changes. Unity may already have
+    // wrapped this texture id with CreateExternalTexture, so keeping the id stable avoids a
+    // stale pointer while still allowing the backing storage to be resized.
+    if (g_outTex == 0) {
+        glGenTextures(1, &g_outTex);
+        glBindTexture(GL_TEXTURE_2D, g_outTex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, g_outTex);
+    }
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    glGenFramebuffers(1, &g_fbo);
+    if (g_fbo == 0) glGenFramebuffers(1, &g_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_outTex, 0);
     GLenum st = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -147,11 +155,18 @@ static void render() {
     jboolean got = env->CallBooleanMethod(g_plugin, m_updateTex, g_mtxArr);
     if (!got) return;
 
-    if (!g_texReady) {
-        int w = env->CallIntMethod(g_plugin, m_getW);
-        int h = env->CallIntMethod(g_plugin, m_getH);
-        if (w <= 0 || h <= 0) return;
-        ensureOutTex(w, h);
+    int sourceW = env->CallIntMethod(g_plugin, m_getW);
+    int sourceH = env->CallIntMethod(g_plugin, m_getH);
+    if (sourceW <= 0 || sourceH <= 0) return;
+
+    int targetW = sourceW, targetH = sourceH;
+    if (targetW > MAX_W) {
+        targetH = (int)((long)targetH * MAX_W / targetW);
+        targetW = MAX_W;
+    }
+    if (!g_texReady || targetW != g_vw || targetH != g_vh) {
+        LOGI("video resolution changed %dx%d -> %dx%d", g_vw, g_vh, targetW, targetH);
+        ensureOutTex(sourceW, sourceH);
     }
 
     float mtx[16];
