@@ -61,7 +61,9 @@ namespace SkyPlayer.Engine
             _key = _options.BackgroundKey;
             _span = Mathf.Lerp(SpanMax, SpanMin, Mathf.Clamp01(_options.DefaultZoom));
 
-            var shader = Shader.Find("SkyPlayer/Engine/StereoEquirect");
+            var shader = Resources.Load<Shader>("SkyPlayerEngine/StereoEquirect");
+            if (shader == null)
+                shader = Shader.Find("SkyPlayer/Engine/StereoEquirect");
             if (shader == null)
                 throw new InvalidOperationException(
                     "SkyPlayer Engine shader is missing from the build: SkyPlayer/Engine/StereoEquirect");
