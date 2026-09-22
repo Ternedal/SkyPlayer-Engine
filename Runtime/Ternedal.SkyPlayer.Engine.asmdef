@@ -1,0 +1,17 @@
+{
+  "name": "Ternedal.SkyPlayer.Engine",
+  "rootNamespace": "SkyPlayer.Engine",
+  "references": [
+    "Unity.XR.OpenXR",
+    "Unity.XR.OpenXR.Editor"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
