@@ -19,6 +19,8 @@ The Android pieces are grouped into one .androidlib so Media3 dependencies live 
 
 ## Phase 2 — high-level player split
 
+Status: **engine side landed** as `SkyPlayer.Engine.VrPlayer` (`Runtime/Playback/VrPlayer.cs`). Playback errors are reported through its `StateChanged` event as `error:<message>`.
+
 Extract from the current Skyplayer VrVideoPlayer:
 
 - playback state machine
@@ -60,5 +62,7 @@ The `engine-integration` branch in `Ternedal/Skyplayer` contains a thin compatib
 5. Pin the engine to a release tag instead of floating main.
 
 ## Phase 4 — Kaliv-VR
+
+Status: **started**. Kaliv VR lives in [Ternedal/ModelRig](https://github.com/Ternedal/ModelRig/tree/main/vr) and consumes this package pinned to a commit (`vr/Packages/manifest.json`). Physical Quest validation is tracked there, not here.
 
 Kaliv-VR starts as a thin Unity/OpenXR client over the same engine. No fork of playback code.
